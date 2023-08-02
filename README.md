@@ -110,3 +110,5 @@ F3RCの足回り周辺のプログラムです
     詳しいことは後で書きます
    
 
+git remote set-url origin git@github.com:dragoemon2/＜リポジトリ名＞.git
+
