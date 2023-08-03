@@ -17,9 +17,9 @@ F3RCの足回り周辺のプログラムです
 
 を作ります．
 
-##　フローチャート
+## フローチャート
 
-![flowchart](https://github.com/dragoemon2/F3RC2023-teamA-DrivingSystem/issues/1#issue-1835362606)
+![DriveSystem](https://user-images.githubusercontent.com/139035878/258173851-2150bdb4-e32b-4fe9-99ad-47ba0cc4f7de.png)
 
 ## 使い方
 
