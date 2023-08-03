@@ -6,6 +6,7 @@ class Encoder{
         DigitalIn B;
         void increment(int sgn);
         float getAmount();
+        float getSpeed();
         int IncrementedNum = 0; //エンコーダーのカウント数
         Encoder(PinName pinA, PinName pinB);
 };

@@ -10,7 +10,7 @@ Encoder::Encoder(PinName pinA, PinName pinB): A(pinA), B(pinB) {
 
 void Encoder::increment(int sgn){
     //エンコーダーのインクリメント，デクリメント
-    if (B.read() == 0){
+    if (B.read() == 1){
         IncrementedNum += sgn;
     }else{
         IncrementedNum -= sgn;

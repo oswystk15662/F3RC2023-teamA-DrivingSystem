@@ -1,22 +1,24 @@
 
 #include <mbed.h>
-#include "driveBase.hpp"
 #include "driveMotor.hpp"
 #include "parameters.hpp"
 
+
+Timer timer;
+
 int main(){
+    timer.start();
     //モーターの用意
-    DriveMotor motor0(PA_0, PA_1, PA_2, PA_3, MOTOR_0_KP, MOTOR_0_KI, MOTOR_0_KD);
-    DriveMotor motor1(PA_4, PA_5, PA_6, PA_7, MOTOR_0_KP, MOTOR_0_KI, MOTOR_0_KD);
-    DriveMotor motor2(PA_8, PA_9, PA_10, PA_11, MOTOR_0_KP, MOTOR_0_KI, MOTOR_0_KD);
-    DriveMotor motor3(PA_12, PA_13, PA_14, PA_15, MOTOR_0_KP, MOTOR_0_KI, MOTOR_0_KD);
+    //DriveMotor motor0(D9, D8, D12, D11, 0.0005f, 0.00002f, 0.00004f);
+    DriveMotor motor0(D9, D8, D12, D11, 1.3f, 0.06f, 0, 0.00003f, 0.000001f, 0);
+    motor0.rotateTo(10000, false);
+    //motor0.rotatePermanent(2000, false);
 
-    //足回り
-    DriveBase driveBase(&motor0, &motor1, &motor2, &motor3);
-
-    //現在の座標を設定
-    driveBase.localization.setPosition(0,0,0);
-
-    //目的地に移動
-    driveBase.goTo(1000, 500, PI/2);
+    while(motor0.moving){
+        //printf("SPEED:%d TSPEED:%d ENCODER:%d\n", int(motor0.delta_before*SPEED_ADJUSTMENT_FREQUENCY), int(motor0.targetDelta*SPEED_ADJUSTMENT_FREQUENCY), int(motor0.encoder.getAmount()));
+        printf("SPEED:%d TSPEED:%d POS:%d\n", int(motor0._s1), int(motor0._s2),  int(motor0.encoder.getAmount()));
+        //printf("PWM:%d\n", int(motor0.pwm*100));
+    }
 }
+
+//0.002 0.0003 0.00004
