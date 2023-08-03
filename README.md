@@ -80,7 +80,7 @@ F3RCの足回り周辺のプログラムです
     #include "driveMotor.hpp"
 
     //引数は左から，エンコーダーのピンA，エンコーダーのピンB，モーターPWMのピン，モーターDIRのピン，Pゲイン，Iゲイン，Dゲイン
-    DriveMotor motor(PA_0, PA_1, PA_2, PA_3, 0.01f, 0.0f, 0.0f)
+    DriveMotor motor(D9, D8, D12, D11, 1.3f, 0.06f, 0, 0.00003f, 0.000001f, 0);
     ```
     詳しいことは後で書きます
 
@@ -93,13 +93,13 @@ F3RCの足回り周辺のプログラムです
 
     int main(){
         //モーター
-        DriveMotor motor0(PA_0, PA_1, PA_2, PA_3, MOTOR_0_KP, MOTOR_0_KI, MOTOR_0_KD);
-        DriveMotor motor1(PA_4, PA_5, PA_6, PA_7, MOTOR_0_KP, MOTOR_0_KI, MOTOR_0_KD);
-        DriveMotor motor2(PA_8, PA_9, PA_10, PA_11, MOTOR_0_KP, MOTOR_0_KI, MOTOR_0_KD);
-        DriveMotor motor3(PA_12, PA_13, PA_14, PA_15, MOTOR_0_KP, MOTOR_0_KI, MOTOR_0_KD);
+        DriveMotor motor0(PA_0, PA_1, PA_2, PA_3, MOTOR_0_KP_1, MOTOR_0_KI_1, MOTOR_0_KD_1, MOTOR_0_KP_1, MOTOR_1_KI_1, MOTOR_2_KD_1);
+        DriveMotor motor1(PA_4, PA_5, PA_6, PA_7, MOTOR_1_KP_1, MOTOR_1_KI_1, MOTOR_1_KD_1, MOTOR_0_KP_1, MOTOR_1_KI_1, MOTOR_2_KD_1);
+        DriveMotor motor2(PA_8, PA_9, PA_10, PA_11, MOTOR_2_KP_1, MOTOR_2_KI_1, MOTOR_2_KD_1, MOTOR_0_KP_1, MOTOR_1_KI_1, MOTOR_2_KD_1);
+        DriveMotor motor3(PA_12, PA_13, PA_14, PA_15, MOTOR_3_KP_1, MOTOR_3_KI_1, MOTOR_3_KD_1, MOTOR_0_KP_1, MOTOR_1_KI_1, MOTOR_2_KD_1);
 
         //足回り
-        DriveBase driveBase(&motor0, &motor1, &motor2, &motor3);
+        DriveBase driveBase(&motor0, &motor1, &motor2, &motor3, DRIVEBASE_KP, DRIVEBASE_KI, DRIVEBASE_KD, DRIVEBASE_ROTATE_KP, DRIVEBASE_ROTATE_KI, DRIVEBASE_ROTATE_KD);
 
         //現在の座標を設定
         driveBase.localization.setPosition(0,0,0);

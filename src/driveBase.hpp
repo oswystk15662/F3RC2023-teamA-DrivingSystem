@@ -5,6 +5,7 @@
 #include "encoder.hpp"
 #include "parameters.hpp"
 #include "localization.hpp"
+#include "PIDcontroller.hpp"
 
 
 float radiansMod(float x, float y=2*PI);
@@ -13,6 +14,10 @@ class DriveBase{
     public:
         DriveMotor* motors[4];
         Localization localization;
+
+        PIDController pidController;
+        PIDController pidRotateController;
+        
 
         //直線移動
         void goTo(float X, float Y, float D, bool idle=true);
@@ -25,10 +30,10 @@ class DriveBase{
         //移動の停止
         void stopMovement();
 
-        DriveBase(DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3);
+        DriveBase(DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3, float kp_1, float ki_1, float kd_1, float kp_2, float ki_2, float kd_2);
 
     private:
-        void goTowardRelative(float X, float Y, float D);
+        void go(float targetSpeedX, float targetSpeedY, float targetSpeedD);
         void goTowardTargetAccDcc();
         void resetPID();
 

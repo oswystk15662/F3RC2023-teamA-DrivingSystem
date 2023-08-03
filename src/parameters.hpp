@@ -17,21 +17,46 @@
 #define RADPP 	(MMPP/TRED_RADIUS)	//エンコーダ1パルスあたりの回転角[rad]
 
 //モーターのPIDゲイン
-#define MOTOR_0_KP (0.001f)
-#define MOTOR_0_KI (0.0f)
-#define MOTOR_0_KD (0.0f)
 
-#define MOTOR_1_KP (0.001f)
-#define MOTOR_1_KI (0.0f)
-#define MOTOR_1_KD (0.0f)
+#define MOTOR_0_KP_1 (1.3f)
+#define MOTOR_0_KI_1 (0.06f)
+#define MOTOR_0_KD_1 (0.0f)
 
-#define MOTOR_2_KP (0.001f)
-#define MOTOR_2_KI (0.0f)
-#define MOTOR_2_KD (0.0f)
+#define MOTOR_1_KP_1 (1.3f)
+#define MOTOR_1_KI_1 (0.06f)
+#define MOTOR_1_KD_1 (0.0f)
 
-#define MOTOR_3_KP (0.001f)
-#define MOTOR_3_KI (0.0f)
-#define MOTOR_3_KD (0.0f)
+#define MOTOR_2_KP_1 (1.3f)
+#define MOTOR_2_KI_1 (0.06f)
+#define MOTOR_2_KD_1 (0.0f)
+
+#define MOTOR_3_KP_1 (1.3f)
+#define MOTOR_3_KI_1 (0.06f)
+#define MOTOR_3_KD_1 (0.0f)
+
+#define MOTOR_0_KP_2 (0.00003f)
+#define MOTOR_0_KI_2 (0.000001f)
+#define MOTOR_0_KD_2 (0.0f)
+
+#define MOTOR_1_KP_2 (0.00003f)
+#define MOTOR_1_KI_2 (0.000001f)
+#define MOTOR_1_KD_2 (0.0f)
+
+#define MOTOR_2_KP_2 (0.00003f)
+#define MOTOR_2_KI_2 (0.000001f)
+#define MOTOR_2_KD_2 (0.0f)
+
+#define MOTOR_3_KP_2 (0.00003f)
+#define MOTOR_3_KI_2 (0.000001f)
+#define MOTOR_3_KD_2 (0.0f)
+
+#define DRIVEBASE_KP (0.00003f)
+#define DRIVEBASE_KI (0.000001f)
+#define DRIVEBASE_KD (0.0f)
+
+#define DRIVEBASE_ROTATE_KP (DRIVEBASE_KP*TRED_RADIUS)
+#define DRIVEBASE_ROTATE_KI (DRIVEBASE_KI*TRED_RADIUS)
+#define DRIVEBASE_ROTATE_KD (DRIVEBASE_KD*TRED_RADIUS)
 
 //移動パラメータ
 #define MAX_ACCELERATION (20000) //最大加速度 [mm/s^2]

@@ -12,9 +12,6 @@ class DriveMotor{
         PIDController pidController;
         PIDController pidSpeedController;
        
-        void rotateToward(float target); //target[mm] に向かって動く
-        void rotateTowardRelative(float distance); //自分に対してdistance[mm] の方向に動く
-
         void rotateTo(float target, bool idle=true);
     
         void setPWM(float signed_pwm); //PWMの直接書き込み
@@ -30,10 +27,6 @@ class DriveMotor{
         float target_speed = 0.0f;
         bool moving = false;
 
-
-        float delta_before = 0.0f;
-
-        float targetDelta = 0.0f;
 
         float lastEncoderAmount = 0.0f;
 
