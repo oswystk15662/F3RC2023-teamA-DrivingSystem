@@ -30,6 +30,8 @@ class DriveBase{
         //移動の停止
         void stopMovement();
 
+        bool moving = false;
+
         DriveBase(DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3, float kp_1, float ki_1, float kd_1, float kp_2, float ki_2, float kd_2);
 
     private:
@@ -37,7 +39,7 @@ class DriveBase{
         void goTowardTargetAccDcc();
         void resetPID();
 
-        bool moving = false;
+        
 
         Ticker movementTicker;
 
