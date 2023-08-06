@@ -164,9 +164,45 @@ F3RCの足回り周辺のプログラムです
 
 ![DriveSystem](https://user-images.githubusercontent.com/139035878/258173851-2150bdb4-e32b-4fe9-99ad-47ba0cc4f7de.png)
 
+1. 線形変換
+   
+   準備として，ロボットの速度ベクトルと足回りの4つのオムニホイールの回転速度の間の変換を考えてみます．
+   ロボットの足回りのホイールに0,1,2,3と番号をつけ，それぞれのタイヤの向き(正方向に回転した時に進む方向)の単位ベクトルを，$\bm{n_0},\bm{n_1},\bm{n_2},\bm{n_3}$とします．ここでは，ロボットの向いている方向を基準とするxy座標系において，
+   $$
+   \bm{n_0} = \frac1{\sqrt{2}} \begin{pmatrix}-1\\1\end{pmatrix}\\
+   \bm{n_1} = \frac1{\sqrt{2}} \begin{pmatrix}-1\\-1\end{pmatrix}\\
+   \bm{n_2} = \frac1{\sqrt{2}} \begin{pmatrix}1\\-1\end{pmatrix}\\
+   \bm{n_3} = \frac1{\sqrt{2}} \begin{pmatrix}1\\1\end{pmatrix}\\
+   $$
+   であるとします．また，ロボットの半径(4つのホイールの重心からホイールまでの距離と定義する)を$r$とおき，ロボットの重心をxy座標系の原点とすると，4つのホイールの位置ベクトルはそれぞれ$r\bm{n_3},r\bm{n_0},r\bm{n_1},r\bm{n_2}$と書くことができます．
+   
+   フィールド上にXY座標をとり，ロボットの重心の位置を$(X,Y)$，フィールドに対してロボットが向いている方向を$\theta$とします．回転行列を
+   $R(\theta)=\begin{pmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{pmatrix}$と略記することにします．
 
-1. 自己位置推定
+   まず，XY座標系でのモーターの位置ベクトル$\bm{N_0},\bm{N_1},\bm{N_2},\bm{N_3}$はそれぞれ次のように書けます．
+   $$\bm{N_0}=\begin{pmatrix}X\\Y\end{pmatrix}+rR(\theta)\bm{n_3}$$
+   $$\bm{N_1}=\begin{pmatrix}X\\Y\end{pmatrix}+rR(\theta)\bm{n_0}$$
+   $$\bm{N_2}=\begin{pmatrix}X\\Y\end{pmatrix}+rR(\theta)\bm{n_1}$$
+   $$\bm{N_3}=\begin{pmatrix}X\\Y\end{pmatrix}+rR(\theta)\bm{n_2}$$
+   両辺を微分して速度ベクトルを計算すると次のようになります
+   $$\dot{\bm{N_0}}=\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}R\left(\theta+\frac{\pi}{2}\right)\bm{n_3} = \begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}R(\theta)\bm{n_0}$$
+   $$\dot{\bm{N_1}}=\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}R\left(\theta+\frac{\pi}{2}\right)\bm{n_0} = \begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}R(\theta)\bm{n_1}$$
+   $$\dot{\bm{N_2}}=\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}R\left(\theta+\frac{\pi}{2}\right)\bm{n_1} = \begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}R(\theta)\bm{n_2}$$
+   $$\dot{\bm{N_3}}=\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}R\left(\theta+\frac{\pi}{2}\right)\bm{n_2} = \begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}R(\theta)\bm{n_3}$$
+
+   ここで，モーターの回転速度$v_0,v_1,v_2,v_3$は，それぞれこれらの速度ベクトルのモーターの向き$R(\theta)\bm{n_0},R(\theta)\bm{n_1},R(\theta)\bm{n_2},R(\theta)\bm{n_3}$への射影となります．よって，内積を使って書くことができ，
+
+   $$v_0=R(\theta)\bm{n_0}\cdot \dot{\bm{N_0}}=\bm{n_0}^TR(\theta)^T\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta} = \bm{n_0} \cdot R(-\theta)\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}$$
+   $$v_1=R(\theta)\bm{n_1}\cdot \dot{\bm{N_1}}=\bm{n_1}^TR(\theta)^T\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta} = \bm{n_1} \cdot R(-\theta)\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}$$
+   $$v_2=R(\theta)\bm{n_2}\cdot \dot{\bm{N_2}}=\bm{n_2}^TR(\theta)^T\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta} = \bm{n_2} \cdot R(-\theta)\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}$$
+   $$v_3=R(\theta)\bm{n_3}\cdot \dot{\bm{N_3}}=\bm{n_3}^TR(\theta)^T\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta} = \bm{n_3} \cdot R(-\theta)\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}$$
+
+   となります．
    
-2. PID制御
    
-3. 足回り制御
+
+2. 自己位置推定
+
+3. PID制御
+   
+4. 足回り制御
