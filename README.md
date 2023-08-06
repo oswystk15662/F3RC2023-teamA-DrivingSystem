@@ -156,7 +156,7 @@ F3RCの足回り周辺のプログラムです
 
     
 
-## 説明
+## 原理の説明
 
 ここからは，プログラムの中身について制御初心者向けの説明をします．以下はこのリポジトリ内のプログラム全体のフローチャートです(かなり省略してますが)
 
@@ -164,7 +164,9 @@ F3RCの足回り周辺のプログラムです
 
 ![DriveSystem](https://user-images.githubusercontent.com/139035878/258173851-2150bdb4-e32b-4fe9-99ad-47ba0cc4f7de.png)
 
-1. 線形変換
+
+
+1. ロボットの速度からモーター速度への変換
    
    準備として，ロボットの速度ベクトルと足回りの4つのオムニホイールの回転速度の間の変換を考えてみます．
    ロボットの足回りのホイールに0,1,2,3と番号をつけ，それぞれのタイヤの向き(正方向に回転した時に進む方向)の単位ベクトルを，$\bm{n_0},\bm{n_1},\bm{n_2},\bm{n_3}$とします．ここでは，ロボットの向いている方向を基準とするxy座標系において，
@@ -197,12 +199,77 @@ F3RCの足回り周辺のプログラムです
    $$v_2=R(\theta)\bm{n_2}\cdot \dot{\bm{N_2}}=\bm{n_2}^TR(\theta)^T\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta} = \bm{n_2} \cdot R(-\theta)\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}$$
    $$v_3=R(\theta)\bm{n_3}\cdot \dot{\bm{N_3}}=\bm{n_3}^TR(\theta)^T\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta} = \bm{n_3} \cdot R(-\theta)\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix}+r\dot{\theta}$$
 
-   となります．
-   
-   
+
+   となります．目標の速度ベクトルから各モーターの目標速度を計算する(フローチャートの下の線形変換)には，次の式を用いています．
+
+   $$
+   \begin{pmatrix}v_0\\v_1\\v_2\\v_3\end{pmatrix}=\frac{\sqrt2}{2}\begin{pmatrix}-1&1\\-1&-1\\1&-1\\1&1\end{pmatrix} \begin{pmatrix}v_x\\v_y\end{pmatrix} +r\dot{\theta} \tag{1}
+   $$
+   ただし，$\begin{pmatrix}v_x\\v_y\end{pmatrix}$はロボットを基準にした重心速度ベクトルであり，
+   $$\begin{pmatrix}v_x\\v_y\end{pmatrix}=\begin{pmatrix}\cos\theta&\sin\theta\\-\sin\theta&\cos\theta\end{pmatrix}\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix} \tag{2}$$
+   です．$\theta$には自己位置推定で計算された値を使います．
 
 2. 自己位置推定
 
+   自己位置推定では1と逆のことを行なっています．つまり，1で導出した$(1),(2)$式を用いて，$v_0,v_1,v_2,v_3$からロボットの位置$X,Y,\theta$を算出しています．ただし，制御周期は有限(5msに設定している)なので，微分や積分を計算するときは制御周期$\Delta t$が十分小さいと近似して単に割り算や掛け算をしているだけです．まず，制御周期あたりの4つのエンコーダーの値の変化を$\Delta z_0, \Delta z_1, \Delta z_2, \Delta z_3$とするとき，
+   $$v_0 \simeq \frac{\Delta z_0}{\Delta t}, v_1 \simeq \frac{\Delta z_1}{\Delta t}, v_2 \simeq \frac{\Delta z_2}{\Delta t}, v_3 \simeq \frac{\Delta z_3}{\Delta t}$$
+   であることを利用し，式$(1)$から得られる，
+   $$
+   \Delta\theta = \frac{1}{4r}\left(\Delta z_0+\Delta z_1+\Delta z_2+\Delta z_3\right)
+   $$
+   を用いて角度の変化および，回転速度
+   $$
+   \dot{\theta}\simeq \frac{\Delta \theta}{\Delta t}
+   $$
+   を算出します．また，ロボットの方向は
+   $$
+   \theta = \theta_0 + \int_{\tau=0}^{t}\dot{\theta}(\tau)d\tau \simeq \theta_0 +\sum\Delta \theta 
+   $$
+   を使って計算します．また，式$(1)$から，ロボットを基準にした$x,y$方向の速度$v_x,v_y$が，
+   $$
+   \begin{pmatrix}v_x\\v_y\end{pmatrix} =\frac{\sqrt2}{4} \begin{pmatrix}-1&-1&1&1\\1&-1&-1&1\end{pmatrix}\left\{\begin{pmatrix}v_0\\v_1\\v_2\\v_3\end{pmatrix}-r\dot{\theta}\right\}
+   $$
+   と書けることを利用して，ロボットを基準にした$x,y$方向の変化$\Delta x,\Delta y$を，
+
+   $$
+   \begin{pmatrix}\Delta x\\\Delta y\end{pmatrix} =\frac{\sqrt2}{4} \begin{pmatrix}-1&-1&1&1\\1&-1&-1&1\end{pmatrix}\left\{\begin{pmatrix}\Delta z_0\\\Delta z_1\\\Delta z_2\\\Delta z_3\end{pmatrix}-r\Delta \theta\right\}
+   $$
+   によって算出しています．これに対し，ロボットの位置の変化を$(2)$から得られる
+   $$\begin{pmatrix}\Delta X\\\Delta Y\end{pmatrix}=\begin{pmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{pmatrix}\begin{pmatrix}\Delta x\\\Delta y\end{pmatrix}$$
+
+   を使って計算し，これらの累積値として，ロボットの座標$X,Y$を算出し記録しています．
+
+
+
 3. PID制御
    
-4. 足回り制御
+   PID制御はフィードバック制御の一種です．フィードバック制御とはセンサの出力値などの物理量(エンコーダの値やレーザの出力など)を読んで，その値が目標値に一致するように適切な出力(モータのPWMなど)を設定するシステムのことです．これに関しては次の記事を見た方がわかりやすいと思うので省略します．
+   https://keiorogiken.wordpress.com/2021/12/13/%E5%88%9D%E5%BF%83%E8%80%85%E3%81%A7%E3%82%82%E3%82%8F%E3%81%8B%E3%82%8A%E3%81%9F%E3%81%84%EF%BC%88%E4%BD%8D%E7%BD%AE%E5%9E%8B%EF%BC%89pid%E5%88%B6%E5%BE%A1/
+   
+   この記事では位置型のPID制御を扱っていますが，僕たちは速度型のPID制御をまず作り(つまり，目標の速度に到達するように出力を調整するシステムを作った)．その上で位置についてのPID制御を行い，その出力を速度型PID制御の出力に入れるということをしています．調整すべきゲイン(パラメータ)の数は多くなりますが，その分安定した動作をすることができます．稼働の様子を載せておきます．
+
+   https://github.com/dragoemon2/GainTuning/assets/139035878/81106f65-5631-457c-9b60-6c068867937d
+
+   上のグラフが速度，下のグラフが位置を表し，オレンジ色が目標値，青色が現時点の値を表しています．
+
+   速度型PIDはそれぞれのモーターで別々に制御しています．一方，位置についてのPID，すなわち位置から目標速度を決定する段階のPID制御については，
+
+   1. ロボットの向いている方向と目標の方向のなす角
+   2. ロボットの位置から目標地点までの距離
+   
+   という2つの値についてそれぞれPID制御を行なって，
+
+   1. 目標回転速度
+   2. 目標並進速度
+   
+   を決定するという形をとっています．(フローチャートの左下あたり)
+
+4. 加減速
+   
+   ロボットは加速度が大きすぎるとスリップが起きたり，速度が大きすぎると危険だったりするので，これらの値を抑える必要があります．
+   そこで一般的には，発進時と停止時に一定の加速度で加減速し，それ以外は一定の速度で動くという「台形制御」が使われます．(v-tグラフが台形状になることからこのように呼ばれる)．
+   しかし，今回はPID制御によって正確にロボットの位置を目標に合わせるということが必要になり，台形制御と位置型PID制御を両立する必要があります．
+   そこで，位置についてのPID制御によって出力される速度，およびそこから計算できる加速度について，これらの値に上限を設けてやり，上限を超えてしまったら上限を超えない最大の出力を出すということを行なっています．
+   これがフローチャートにある「速度・加速度上限フィルタ」です．これを用いると，加速区間は自然と台形状の加速になり，減速区間でPIDの本領が発揮して正確に目的地に止まることができます．
+   
+   
