@@ -26,25 +26,6 @@ void DriveBase::resetPID(){
     }
 }
 
-/*
-//ある方向に向かって進む
-void DriveBase::goTowardRelative(float deltaX, float deltaY, float deltaD){
-    float rotated_x = cos(localization.direction)*deltaX + sin(localization.direction)*deltaY;
-    float rotated_y = -sin(localization.direction)*deltaX + cos(localization.direction)*deltaY;
-
-    float delta[4]; //モーターの速度
-    delta[0] = SQRT2/2 * (- rotated_x + rotated_y) + TRED_RADIUS * deltaD;
-    delta[1] = SQRT2/2 * (- rotated_x - rotated_y) + TRED_RADIUS * deltaD;
-    delta[2] = SQRT2/2 * (+ rotated_x - rotated_y) + TRED_RADIUS * deltaD;
-    delta[3] = SQRT2/2 * (+ rotated_x + rotated_y) + TRED_RADIUS * deltaD;
-    
-    for (int i=0;i<4;i++){
-        motors[i]->rotateTowardRelative(delta[i]);
-    }
-}
-*/
-
-
 //速度を指定して移動
 void DriveBase::go(float targetSpeedX, float targetSpeedY, float targetSpeedD){
     float targetSpeedR = sqrtf(targetSpeedX*targetSpeedX + targetSpeedY*targetSpeedY);
@@ -164,6 +145,35 @@ void DriveBase::goTo(float X, float Y, float D, bool idle){
     }
 }
 
+
+
+void DriveBase::runNoEncoder(float pwmX, float pwmY, float dir, float pwmD, float time){
+    if(moving){
+        printf("warning: a motion requested while the robot is moving.");
+        movementTicker.detach();
+    }
+
+    float vx = cos(dir)*pwmX + sin(dir)*pwmY;
+    float vy = -sin(dir)*pwmX + cos(dir)*pwmY;
+
+    //各モーターの速度
+    float speeds[4]; //モーターの速度
+    speeds[0] = SQRT2/2 * (- vx + vy) + TRED_RADIUS * pwmD;
+    speeds[1] = SQRT2/2 * (- vx - vy) + TRED_RADIUS * pwmD;
+    speeds[2] = SQRT2/2 * (+ vx - vy) + TRED_RADIUS * pwmD;
+    speeds[3] = SQRT2/2 * (+ vx + vy) + TRED_RADIUS * pwmD;
+
+    timer.start();
+
+    for(int i=0;i<4;i++){
+        motors[i]->setPWM(speeds[i]);
+    }
+
+    while(chrono::duration<float>(timer.elapsed_time()).count() < time){}
+
+    stopMovement();
+}
+
 //超信地旋回
 void DriveBase::rotateTo(float D, bool idle){
     goTo(localization.posX, localization.posY, D, idle);
@@ -173,4 +183,3 @@ void DriveBase::rotateTo(float D, bool idle){
 void DriveBase::goParallelTo(float X, float Y, bool idle){
     goTo(X, Y, localization.direction, idle);
 }
-

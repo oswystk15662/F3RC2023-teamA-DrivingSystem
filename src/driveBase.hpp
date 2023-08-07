@@ -24,6 +24,8 @@ class DriveBase{
         void rotateTo(float D, bool idle=true);
         void goParallelTo(float X, float Y, bool idle=true);
 
+        void runNoEncoder(float pwmX, float pwmY, float dir, float pwmD, float time);
+
         //曲線移動 これから作る
         
 
@@ -39,9 +41,9 @@ class DriveBase{
         void goTowardTargetAccDcc();
         void resetPID();
 
-        
-
+    
         Ticker movementTicker;
+        Timer timer;
 
         //目標位置
         float target_X = 0.0f;

@@ -207,6 +207,21 @@ F3RCの足回り周辺のプログラムです
    $$\begin{pmatrix}v_x\\v_y\end{pmatrix}=\begin{pmatrix}\cos\theta&\sin\theta\\-\sin\theta&\cos\theta\end{pmatrix}\begin{pmatrix}\dot{X}\\\dot{Y}\end{pmatrix} \tag{2}$$
    です．$\theta$には自己位置推定で計算された値を使います．
 
+
+   実際のプログラム:(`DriveBase::go()` 一部)
+   ```cpp
+    //X, Yに回転行列をかける
+    float vx = cos(localization.direction)*targetSpeedX + sin(localization.direction)*targetSpeedY;
+    float vy = -sin(localization.direction)*targetSpeedX + cos(localization.direction)*targetSpeedY;
+
+    //各モーターの速度
+    float speeds[4]; //モーターの速度
+    speeds[0] = SQRT2/2 * (- vx + vy) + TRED_RADIUS * targetSpeedD;
+    speeds[1] = SQRT2/2 * (- vx - vy) + TRED_RADIUS * targetSpeedD;
+    speeds[2] = SQRT2/2 * (+ vx - vy) + TRED_RADIUS * targetSpeedD;
+    speeds[3] = SQRT2/2 * (+ vx + vy) + TRED_RADIUS * targetSpeedD;
+   ```
+
 2. 自己位置推定
 
    自己位置推定では1と逆のことを行なっています．つまり，1で導出した$(1),(2)$式を用いて，$v_0,v_1,v_2,v_3$からロボットの位置$X,Y,\theta$を算出しています．ただし，制御周期は有限(5msに設定している)なので，微分や積分を計算するときは制御周期$\Delta t$が十分小さいと近似して単に割り算や掛け算をしているだけです．まず，制御周期あたりの4つのエンコーダーの値の変化を$\Delta z_0, \Delta z_1, \Delta z_2, \Delta z_3$とするとき，
@@ -237,12 +252,66 @@ F3RCの足回り周辺のプログラムです
 
    を使って計算し，これらの累積値として，ロボットの座標$X,Y$を算出し記録しています．
 
+   実際のプログラム(`Localization::encoderLocalization()`)
+   ```cpp
+   void Localization::encoderLocalization(){
+        //エンコーダーによる位置，速度の推定
+        int incrementDelta[4] = {0,0,0,0}; //前回からのエンコーダーのインクリメント数の変化
+
+        for (int i=0;i<4;i++){
+           incrementDelta[i] = driveMotors[i]->encoder. IncrementedNum - incrementedNumBefore[i];
+        }
+
+        //回転成分
+        float dd = (incrementDelta[0] + incrementDelta[1] + incrementDelta[2] + incrementDelta[3])/4;
+
+        //回転成分を取り除く
+        float a = SQRT2*(driveMotors[0]->encoder.IncrementedNum-dd); //-dx+dy
+        float b = SQRT2*(driveMotors[1]->encoder.IncrementedNum-dd); //-dx-dy
+        float c = SQRT2*(driveMotors[2]->encoder.IncrementedNum-dd); //+dx-dy
+        float d = SQRT2*(driveMotors[3]->encoder.IncrementedNum-dd); //+dx+dy
+
+        //位置の変化．ただしロボットに対して相対的な向き
+        float dx = (-a-b+c+d)/4; // x成分の変化量/MMPP
+        float dy = (+a-b-c+d)/4; // y成分の変化量/MMPP
+
+        //推定値の書き込み
+        float dX = MMPP * (cos(direction)*dx-sin(direction)*dy);
+        posX += dX;
+        speedX = dX*ENCODER_LOCALIZATION_FREQUENCY;
+
+        float dY = MMPP * (sin(direction)*dx+cos(direction)*dy);
+        posY += dY;
+        speedX = dY*ENCODER_LOCALIZATION_FREQUENCY;
+
+        float dD = RADPP * dd;
+        direction += dD;
+        rotateSpeed = dD*ENCODER_LOCALIZATION_FREQUENCY;
+
+        for (int i=0;i<4;i++){
+            incrementedNumBefore[i] = driveMotors[i]->encoder.IncrementedNum;
+        }
+
+    }
+   ```
+
 
 
 3. PID制御
    
    PID制御はフィードバック制御の一種です．フィードバック制御とはセンサの出力値などの物理量(エンコーダの値やレーザの出力など)を読んで，その値が目標値に一致するように適切な出力(モータのPWMなど)を設定するシステムのことです．これに関しては次の記事を見た方がわかりやすいと思うので省略します．
    https://keiorogiken.wordpress.com/2021/12/13/%E5%88%9D%E5%BF%83%E8%80%85%E3%81%A7%E3%82%82%E3%82%8F%E3%81%8B%E3%82%8A%E3%81%9F%E3%81%84%EF%BC%88%E4%BD%8D%E7%BD%AE%E5%9E%8B%EF%BC%89pid%E5%88%B6%E5%BE%A1/
+
+   実際のプログラム(`PIDController:calculate()`)
+   ```cpp
+   float PIDController::calculate(float error) {
+        float output = KP * error + KI * integral + KD * (error - prevError);
+        prevError = error;
+        integral += error;
+
+        return output;
+   }
+   ```
    
    この記事では位置型のPID制御を扱っていますが，僕たちは速度型のPID制御をまず作り(つまり，目標の速度に到達するように出力を調整するシステムを作った)．その上で位置についてのPID制御を行い，その出力を速度型PID制御の出力に入れるということをしています．調整すべきゲイン(パラメータ)の数は多くなりますが，その分安定した動作をすることができます．稼働の様子を載せておきます．
 
