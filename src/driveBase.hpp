@@ -36,6 +36,8 @@ class DriveBase{
 
         DriveBase(DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3, float kp_1, float ki_1, float kd_1, float kp_2, float ki_2, float kd_2);
 
+        int _s1;
+
     private:
         void go(float targetSpeedX, float targetSpeedY, float targetSpeedD);
         void goTowardTargetAccDcc();

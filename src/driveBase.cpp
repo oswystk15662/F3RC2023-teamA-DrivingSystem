@@ -7,7 +7,7 @@
 float radiansMod(float x, float y){
     //x (mod y) を -y/2 ~ y/2の範囲で出力
     //主に2つの方角のなす角度を計算するのに使用
-    return fmod((fmod(x,y) + y/2),y) + y/2;
+    return fmod((fmod(x,y) + y/2.0),y) - y/2.0;
 }
 
 //初期化
@@ -24,11 +24,16 @@ void DriveBase::resetPID(){
     for (int i=0;i<4;i++){
         motors[i]->pidController.reset();
     }
+    pidController.reset();
+    pidRotateController.reset();
 }
 
 //速度を指定して移動
 void DriveBase::go(float targetSpeedX, float targetSpeedY, float targetSpeedD){
     float targetSpeedR = sqrtf(targetSpeedX*targetSpeedX + targetSpeedY*targetSpeedY);
+
+    //_s1 = int(targetSpeedR);
+
 
     //速度を制限する
     if(targetSpeedR > MAX_SPEED){
@@ -91,7 +96,10 @@ void DriveBase::goTowardTargetAccDcc(){
 
     float targetSpeedR = pidController.calculate(differenceR);
 
+    _s1 = targetSpeedR;
+
     float targetSpeedX, targetSpeedY;
+
     if(differenceR == 0){
         //0除算の回避
         targetSpeedX = 0;
@@ -101,7 +109,9 @@ void DriveBase::goTowardTargetAccDcc(){
         targetSpeedY = targetSpeedR*(differenceY/differenceR);
     }
 
-    float targetSpeedD = pidController.calculate(differenceD);
+    float targetSpeedD = pidRotateController.calculate(differenceD);
+
+    //targetSpeedD = 0;
 
     go(targetSpeedX, targetSpeedY, targetSpeedD);
 
@@ -158,11 +168,12 @@ void DriveBase::runNoEncoder(float pwmX, float pwmY, float dir, float pwmD, floa
 
     //各モーターの速度
     float speeds[4]; //モーターの速度
-    speeds[0] = SQRT2/2 * (- vx + vy) + TRED_RADIUS * pwmD;
-    speeds[1] = SQRT2/2 * (- vx - vy) + TRED_RADIUS * pwmD;
-    speeds[2] = SQRT2/2 * (+ vx - vy) + TRED_RADIUS * pwmD;
-    speeds[3] = SQRT2/2 * (+ vx + vy) + TRED_RADIUS * pwmD;
+    speeds[0] = SQRT2/2 * (- vx + vy) + pwmD;
+    speeds[1] = SQRT2/2 * (- vx - vy) + pwmD;
+    speeds[2] = SQRT2/2 * (+ vx - vy) + pwmD;
+    speeds[3] = SQRT2/2 * (+ vx + vy) + pwmD;
 
+    timer.reset();
     timer.start();
 
     for(int i=0;i<4;i++){

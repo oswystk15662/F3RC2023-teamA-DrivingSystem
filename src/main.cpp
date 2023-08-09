@@ -1,24 +1,29 @@
 
 #include <mbed.h>
 #include "driveMotor.hpp"
+#include "driveBase.hpp"
 #include "parameters.hpp"
 
 
-Timer timer;
+//エンコーダーのピン，モーターのピン，PIDゲイン
+DriveMotor motor0(A0, A1, D2, D3, MOTOR_0_KP_1, MOTOR_0_KI_1, MOTOR_0_KD_1, MOTOR_0_KP_2, MOTOR_0_KI_2, MOTOR_0_KD_2);
+DriveMotor motor1(A2, A3, D4, D5, MOTOR_1_KP_1, MOTOR_1_KI_1, MOTOR_1_KD_1, MOTOR_1_KP_2, MOTOR_1_KI_2, MOTOR_1_KD_2);
+DriveMotor motor2(A4, A5, D6, D7, MOTOR_2_KP_1, MOTOR_2_KI_1, MOTOR_2_KD_1, MOTOR_2_KP_2, MOTOR_2_KI_2, MOTOR_2_KD_2);
+DriveMotor motor3(D0, D1, D8, D9, MOTOR_3_KP_1, MOTOR_3_KI_1, MOTOR_3_KD_1, MOTOR_3_KP_2, MOTOR_3_KI_2, MOTOR_3_KD_2);
+
+
+
+//足回り全体
+DriveBase driveBase(&motor0, &motor1, &motor2, &motor3, DRIVEBASE_KP, DRIVEBASE_KI, DRIVEBASE_KD, DRIVEBASE_ROTATE_KP, DRIVEBASE_ROTATE_KI, DRIVEBASE_ROTATE_KD);
 
 int main(){
-    timer.start();
-    //モーターの用意
-    //DriveMotor motor0(D9, D8, D12, D11, 0.0005f, 0.00002f, 0.00004f);
-    DriveMotor motor0(D9, D8, D12, D11, 1.3f, 0.06f, 0, 0.00003f, 0.000001f, 0);
-    motor0.rotateTo(10000, false);
-    //motor0.rotatePermanent(2000, false);
+    
+    driveBase.runNoEncoder(0.3, 0.3, 0, 0, 4);
+    driveBase.runNoEncoder(0, 0, 0, 0.2, 2);
+    driveBase.runNoEncoder(0.3, 0.3, 0, 0, 4);
 
-    while(motor0.moving){
-        //printf("SPEED:%d TSPEED:%d ENCODER:%d\n", int(motor0.delta_before*SPEED_ADJUSTMENT_FREQUENCY), int(motor0.targetDelta*SPEED_ADJUSTMENT_FREQUENCY), int(motor0.encoder.getAmount()));
-        printf("SPEED:%d TSPEED:%d POS:%d\n", int(motor0._s1), int(motor0._s2),  int(motor0.encoder.getAmount()));
-        //printf("PWM:%d\n", int(motor0.pwm*100));
+    while(1){
+        
     }
 }
 
-//0.002 0.0003 0.00004

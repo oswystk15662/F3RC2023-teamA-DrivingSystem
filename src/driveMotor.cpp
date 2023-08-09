@@ -29,6 +29,7 @@ void DriveMotor::rotate(float targetSpeed){
 
     _s1 = speed;
 
+
     //速度を制限する
 
     if(targetSpeed > MAX_SPEED){
@@ -45,11 +46,12 @@ void DriveMotor::rotate(float targetSpeed){
 
     if(targetAcc > MAX_ACCELERATION){
         targetSpeed = speed + MAX_ACCELERATION / SPEED_ADJUSTMENT_FREQUENCY;
-    }else if(targetAcc < -MAX_DELTA_DELTA_R){
+    }else if(targetAcc < -MAX_ACCELERATION){
         targetSpeed = speed - MAX_ACCELERATION / SPEED_ADJUSTMENT_FREQUENCY;
     }
 
     _s2 = targetSpeed;
+
 
     float u = pidSpeedController.calculate(targetSpeed - speed);
 
@@ -105,6 +107,7 @@ void DriveMotor::rotateTo(float target_point, bool idle){
         while(moving) {}
     }
 }
+
 
 void DriveMotor::rotatePermanent(float speed, bool idle){
     if(moving){
