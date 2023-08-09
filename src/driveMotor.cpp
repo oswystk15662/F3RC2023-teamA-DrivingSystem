@@ -104,7 +104,9 @@ void DriveMotor::rotateTo(float target_point, bool idle){
 
     //idle=trueなら移動が終わるまで待機
     if(idle){
-        while(moving) {}
+        while(moving) {
+            wait_ns(1);
+        }
     }
 }
 

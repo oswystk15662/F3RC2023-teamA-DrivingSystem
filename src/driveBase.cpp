@@ -151,7 +151,9 @@ void DriveBase::goTo(float X, float Y, float D, bool idle){
 
     //idle=trueなら移動が終わるまで待機
     if(idle){
-        while(moving) {}
+        while(moving) {
+            wait_ns(1);
+        }
     }
 }
 
@@ -179,8 +181,11 @@ void DriveBase::runNoEncoder(float pwmX, float pwmY, float dir, float pwmD, floa
     for(int i=0;i<4;i++){
         motors[i]->setPWM(speeds[i]);
     }
+    
 
-    while(chrono::duration<float>(timer.elapsed_time()).count() < time){}
+    while(chrono::duration<float>(timer.elapsed_time()).count() < time){
+        wait_ns(1);
+    }
 
     stopMovement();
 }

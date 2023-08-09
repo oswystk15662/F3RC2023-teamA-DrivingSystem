@@ -18,9 +18,9 @@ DriveBase driveBase(&motor0, &motor1, &motor2, &motor3, DRIVEBASE_KP, DRIVEBASE_
 
 int main(){
     
-    driveBase.runNoEncoder(0.3, 0.3, 0, 0, 4);
-    driveBase.runNoEncoder(0, 0, 0, 0.2, 2);
-    driveBase.runNoEncoder(0.3, 0.3, 0, 0, 4);
+    driveBase.runNoEncoder(0.4, 0, 0, 0, 4);  //直進
+    driveBase.runNoEncoder(0, 0, 0, 0.2, 2);  //まわる
+    driveBase.runNoEncoder(0.4, 0, 0, 0, 4);  //直進
 
     while(1){
         
